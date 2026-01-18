@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Session {
+  id            String   @id @default(cuid())
+
+  // tokens
+  sessionToken  String   @unique
+  token         String?
+
+  // expiry
+  expires       DateTime
+  expiresAt     DateTime
+
+  // metadata
+  ipAddress     String?
+  userAgent     String?
+
+  // relation
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+
+model Account {
+  id                     String   @id @default(cuid())
+
+  // provider info
+  provider               String
+  providerId             String
+  providerAccountId      String
+  accountId              String
+
+  // credentials (email/password)
+  password               String?   // ← REQUIRED FOR EMAIL AUTH
+
+  // OAuth tokens
+  accessToken            String?
+  refreshToken           String?
+  idToken                String?
+  accessTokenExpiresAt   DateTime?
+  scope                  String?
+
+  // relation
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // timestamps
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([provider, accountId])
+}
+
+
+
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+

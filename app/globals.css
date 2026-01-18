@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@100..1000&family=Averia+Serif+Libre:ital,wght@1,300;1,400;1,700&display=swap");
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -63,11 +61,6 @@
 :root {
   --radius: 0.625rem;
 
-  --font-dm-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-  --font-aver: "Averia Serif Libre", ui-serif, Georgia, Cambria, "Times New Roman",
-    Times, serif;
-
   --background: #ffffff;
   --foreground: #0a0a0a;
 
@@ -115,6 +108,8 @@
   --background: #000000;       /* app bg */
   --secondary: #0a0a0a;        /* secondary bg */
   --card: #232323;             /* card bg */
+  --logo: #fef28e;
+
 
   --foreground: #fffdee;       /* default text */
 
@@ -167,4 +162,8 @@
 .font-aver {
   font-family: var(--font-aver);
   font-style: italic;
+}
+
+:root {
+  --logo: #fef28e;
 }
