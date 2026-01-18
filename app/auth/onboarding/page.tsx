@@ -23,7 +23,7 @@ export default function OnboardingPage() {
       if (!res.ok) return;
 
       const session = await res.json();
-      if (session?.user?.name) {
+      if (session?.user?.name && !session.user.name.includes("@")) {
         setName(session.user.name);
       }
     }
@@ -33,11 +33,13 @@ export default function OnboardingPage() {
 
   /* ---------------- HELPERS ---------------- */
 
-  async function saveProfile(data: Partial<{
-    name: string;
-    username: string;
-    isPublic: boolean;
-  }>) {
+  async function saveProfile(
+    data: Partial<{
+      name: string;
+      username: string;
+      isPublic: boolean;
+    }>,
+  ) {
     await fetch("/api/user/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -47,7 +49,7 @@ export default function OnboardingPage() {
 
   async function checkUsernameAvailability(username: string) {
     const res = await fetch(
-      `/api/user/check-username?username=${encodeURIComponent(username)}`
+      `/api/user/check-username?username=${encodeURIComponent(username)}`,
     );
     if (!res.ok) return false;
     const data = await res.json();
@@ -105,155 +107,147 @@ export default function OnboardingPage() {
   /* ---------------- UI ---------------- */
 
   return (
-      <div className="w-full max-w-md space-y-6">
-        <p className="text-xs text-neutral-500">Step {step} of 4</p>
+    <div className="w-full max-w-md space-y-6">
+      <p className="text-xs text-neutral-500">Step {step} of 4</p>
 
-        {error && (
-          <p className="text-sm text-red-500">{error}</p>
-        )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-        {/* STEP 1 — NAME */}
-        {step === 1 && (
-          <>
-            <h2 className="text-xl font-semibold">What’s your name?</h2>
+      {/* STEP 1 — NAME */}
+      {step === 1 && (
+        <>
+          <h2 className="text-xl font-semibold">What’s your name?</h2>
 
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label>Name</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+            />
+          </div>
+
+          <Button
+            onClick={handleNameNext}
+            disabled={loading}
+            className="w-full"
+          >
+            Next
+          </Button>
+        </>
+      )}
+
+      {/* STEP 2 — USERNAME */}
+      {step === 2 && (
+        <>
+          <h2 className="text-xl font-semibold">Choose a username</h2>
+
+          <div className="space-y-2">
+            <Label>Username</Label>
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              placeholder="nakuldev"
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setStep(1)}
+              className="w-full"
+            >
+              Back
+            </Button>
 
             <Button
-              onClick={handleNameNext}
+              onClick={handleUsernameNext}
               disabled={loading}
               className="w-full"
             >
               Next
             </Button>
-          </>
-        )}
+          </div>
+        </>
+      )}
 
-        {/* STEP 2 — USERNAME */}
-        {step === 2 && (
-          <>
-            <h2 className="text-xl font-semibold">Choose a username</h2>
+      {/* STEP 3 — VISIBILITY */}
+      {step === 3 && (
+        <>
+          <h2 className="text-xl font-semibold">Profile visibility</h2>
 
-            <div className="space-y-2">
-              <Label>Username</Label>
-              <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                placeholder="nakuldev"
-              />
-            </div>
+          <div className="space-y-3">
+            <button
+              onClick={() => setIsPublic(true)}
+              className={`w-full rounded-lg border p-4 text-left ${
+                isPublic ? "border-white" : "border-neutral-800"
+              }`}
+            >
+              <p className="font-medium">Public</p>
+              <p className="text-xs text-neutral-500">
+                Anyone can view your profile
+              </p>
+            </button>
 
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep(1)}
-                className="w-full"
-              >
-                Back
-              </Button>
+            <button
+              onClick={() => setIsPublic(false)}
+              className={`w-full rounded-lg border p-4 text-left ${
+                !isPublic ? "border-white" : "border-neutral-800"
+              }`}
+            >
+              <p className="font-medium">Private</p>
+              <p className="text-xs text-neutral-500">Only you can view it</p>
+            </button>
+          </div>
 
-              <Button
-                onClick={handleUsernameNext}
-                disabled={loading}
-                className="w-full"
-              >
-                Next
-              </Button>
-            </div>
-          </>
-        )}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setStep(2)}
+              className="w-full"
+            >
+              Back
+            </Button>
 
-        {/* STEP 3 — VISIBILITY */}
-        {step === 3 && (
-          <>
-            <h2 className="text-xl font-semibold">
-              Profile visibility
-            </h2>
+            <Button
+              onClick={handleVisibilityNext}
+              disabled={loading}
+              className="w-full"
+            >
+              Next
+            </Button>
+          </div>
+        </>
+      )}
 
-            <div className="space-y-3">
-              <button
-                onClick={() => setIsPublic(true)}
-                className={`w-full rounded-lg border p-4 text-left ${
-                  isPublic ? "border-white" : "border-neutral-800"
-                }`}
-              >
-                <p className="font-medium">Public</p>
-                <p className="text-xs text-neutral-500">
-                  Anyone can view your profile
-                </p>
-              </button>
+      {/* STEP 4 — IMPORT (SKIPPED) */}
+      {step === 4 && (
+        <>
+          <h2 className="text-xl font-semibold">Import bookmarks</h2>
 
-              <button
-                onClick={() => setIsPublic(false)}
-                className={`w-full rounded-lg border p-4 text-left ${
-                  !isPublic ? "border-white" : "border-neutral-800"
-                }`}
-              >
-                <p className="font-medium">Private</p>
-                <p className="text-xs text-neutral-500">
-                  Only you can view it
-                </p>
-              </button>
-            </div>
+          <p className="text-sm text-neutral-500">
+            You can import from your browser now or later.
+          </p>
 
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep(2)}
-                className="w-full"
-              >
-                Back
-              </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setStep(3)}
+              className="w-full"
+            >
+              Back
+            </Button>
 
-              <Button
-                onClick={handleVisibilityNext}
-                disabled={loading}
-                className="w-full"
-              >
-                Next
-              </Button>
-            </div>
-          </>
-        )}
-
-        {/* STEP 4 — IMPORT (SKIPPED) */}
-        {step === 4 && (
-          <>
-            <h2 className="text-xl font-semibold">
-              Import bookmarks
-            </h2>
-
-            <p className="text-sm text-neutral-500">
-              You can import from your browser now or later.
-            </p>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setStep(3)}
-                className="w-full"
-              >
-                Back
-              </Button>
-
-              <Button
-                onClick={() => {
-                  window.location.href = "/inventory";
-                }}
-                className="w-full"
-              >
-                Finish
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
+            <Button
+              onClick={() => {
+                window.location.href = "/inventory";
+              }}
+              className="w-full"
+            >
+              Finish
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

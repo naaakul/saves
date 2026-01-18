@@ -1,11 +1,14 @@
-import React from 'react'
+import React from "react";
+import { getServerSession } from "@/utils/getServerSession";
 
-const page = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+const Page = async () => {
+  const session = await getServerSession();
 
-export default page
+  if (!session?.user) {
+    return <div>Not logged in</div>;
+  }
+
+  return <div>{session.user.email}</div>;
+};
+
+export default Page;
