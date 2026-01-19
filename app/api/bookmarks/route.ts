@@ -37,7 +37,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Optional folder ownership check
   if (collectionId) {
     const folder = await prisma.collection.findFirst({
       where: {
@@ -66,7 +65,7 @@ export async function POST(req: Request) {
 
   await prisma.bookmark.createMany({
     data,
-    skipDuplicates: true, // important for extension
+    skipDuplicates: true,
   });
 
   return NextResponse.json({ success: true });
