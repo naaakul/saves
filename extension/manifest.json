@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Saves",
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "src/popup/index.html"
+  },
+  "permissions": ["storage", "tabs"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://saves.lol/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}
