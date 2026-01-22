@@ -22,6 +22,8 @@ model User {
   collections Collection[]
   bookmarks   Bookmark[]
 
+  extensionTokens ExtensionToken[] // ✅ ADD THIS
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -173,4 +175,14 @@ model Verification {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ExtensionToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
 }
