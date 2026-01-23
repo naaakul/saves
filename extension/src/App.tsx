@@ -8,6 +8,7 @@ export default function App() {
   const [view, setView] = useState<ViewState>("checking");
   const [token, setToken] = useState<string | null>(null);
 
+
   const [collections, setCollections] = useState<CollectionNode[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -21,49 +22,39 @@ export default function App() {
         loadCollections(token);
       }
     });
-
-    chrome.tabs.onUpdated.addListener(handleTabUpdate);
-
-    return () => {
-      chrome.tabs.onUpdated.removeListener(handleTabUpdate);
-    };
   }, []);
-
-  function handleTabUpdate(
-    tabId: number,
-    changeInfo: chrome.tabs.TabChangeInfo,
-    tab: chrome.tabs.Tab
-  ) {
-    if (!changeInfo.url) return;
-
-    try {
-      const url = new URL(changeInfo.url);
-
-      if (url.pathname === "/extension/done") {
-        const token = url.searchParams.get("token");
-
-        if (token) {
-          chrome.storage.local.set({ token });
-          setToken(token);
-          setView("app");
-          loadCollections(token);
-
-          chrome.tabs.remove(tabId);
-        }
-      }
-    } catch {
-    }
-  }
 
   async function loadCollections(token: string) {
     try {
       const data = await getCollections(token);
       setCollections(data);
-    } catch (err) {
-      console.error("Auth failed, forcing login", err);
+    } catch {
       await chrome.storage.local.remove("token");
       setView("login");
     }
+  }
+
+  async function handleLogin() {
+    chrome.identity.launchWebAuthFlow(
+      {
+        url: "http://localhost:3000/auth/login?from=extension",
+        interactive: true,
+      },
+      async (redirectUrl) => {
+        if (!redirectUrl) return;
+
+        const url = new URL(redirectUrl);
+        const token = url.searchParams.get("token");
+
+        if (!token) return;
+
+        await chrome.storage.local.set({ token });
+
+        setToken(token);
+        setView("app");
+        loadCollections(token);
+      }
+    );
   }
 
   async function onSave() {
@@ -80,7 +71,6 @@ export default function App() {
       collectionId: selectedId,
     });
 
-    await chrome.storage.local.set({ lastCollectionId: selectedId });
     window.close();
   }
 
@@ -91,15 +81,7 @@ export default function App() {
   if (view === "login") {
     return (
       <div style={{ padding: 16 }}>
-        <button
-          onClick={() => {
-            chrome.tabs.create({
-              url: "http://localhost:3000/auth/login?from=extension",
-            });
-          }}
-        >
-          Login
-        </button>
+        <button onClick={handleLogin}>Login</button>
       </div>
     );
   }
