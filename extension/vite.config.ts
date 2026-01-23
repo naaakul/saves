@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react"
 import { viteStaticCopy } from "vite-plugin-static-copy"
 
 export default defineConfig({
-  base: "./", // ← THIS FIXES ERR_FILE_NOT_FOUND
+  base: "./",
   plugins: [
     react(),
     viteStaticCopy({
@@ -18,7 +18,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        popup: "src/popup/index.html",
+        popup: "popup.html",
         background: "src/background.ts"
       },
       output: {

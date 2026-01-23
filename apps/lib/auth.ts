@@ -1,6 +1,6 @@
-import { getSession } from "@/utils/getServerSession"
+import { getServerSession } from "@/utils/getServerSession"
 
-export async function getUserFromRequest(req: Request) {
-  const session = await getSession(req)
+export async function getUserFromRequest() {
+  const session = await getServerSession()
   return session?.user ?? null
 }

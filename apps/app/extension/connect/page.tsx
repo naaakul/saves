@@ -1,23 +1,20 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
+import { useEffect } from "react";
 
 export default function ExtensionConnectPage() {
   useEffect(() => {
-    fetch("/api/extension/handshake", {
-      method: "POST"
-    })
-      .then(res => res.json())
+    fetch("/api/extension/handshake", { method: "POST" })
+      .then((res) => res.json())
       .then(({ token }) => {
-        window.postMessage(
-          {
-            type: "SAVES_EXTENSION_TOKEN",
-            token
-          },
-          "*"
-        )
-      })
-  }, [])
+        if (!token) return;
 
-  return <p>Connecting extension… You can close this tab.</p>
+        // 🔑 redirect ONCE to a different page
+        window.location.replace(
+          `/extension/done?token=${encodeURIComponent(token)}`
+        );
+      });
+  }, []);
+
+  return <p>Connecting extension…</p>;
 }

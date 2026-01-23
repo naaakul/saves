@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getUserFromRequest } from "@/lib/auth"
 
-export async function POST(req: Request) {
-  const user = await getUserFromRequest(req)
+export async function POST() {
+  const user = await getUserFromRequest()
 
   if (!user) {
     return NextResponse.json(

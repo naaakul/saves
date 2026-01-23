@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
@@ -11,6 +12,13 @@ import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth/auth-client";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const fromExtension = searchParams.get("from") === "extension";
+
+  const callbackURL = fromExtension
+    ? "/extension/connect"
+    : "/inventory";
+
   const [loading, setLoading] = useState<"google" | "email" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +30,7 @@ export default function LoginPage() {
     await signIn.social(
       {
         provider: "google",
-        callbackURL: "/inventory",
+        callbackURL,
       },
       {
         onRequest: () => setLoading("google"),
@@ -36,13 +44,15 @@ export default function LoginPage() {
               "error" in ctx &&
               typeof ctx.error === "string" &&
               ctx.error) ||
-            "Invalid email or password";
+            "Google login failed";
 
           setError(msg);
         },
-      },
+      }
     );
   };
+
+  /* ---------------- EMAIL LOGIN ---------------- */
 
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -57,7 +67,7 @@ export default function LoginPage() {
       {
         email,
         password,
-        callbackURL: "/inventory",
+        callbackURL,
       },
       {
         onResponse: () => setLoading(null),
@@ -74,12 +84,13 @@ export default function LoginPage() {
 
           setError(msg);
         },
-      },
+      }
     );
   };
 
   return (
-    <div className="w-full max-w-sm space-y-2">
+    <div className="w-full max-w-sm space-y-4">
+      {/* Header */}
       <div className="flex gap-3 mb-6 text-xl">
         <p>login</p>
         <Link href="/auth/signup">
@@ -87,6 +98,7 @@ export default function LoginPage() {
         </Link>
       </div>
 
+      {/* Email form */}
       <form onSubmit={handleEmailLogin} className="space-y-4">
         <div>
           <Label>Email</Label>
@@ -126,11 +138,11 @@ export default function LoginPage() {
         or
       </div>
 
-      {/* Google */}
+      {/* Google login */}
       <Button
         disabled={loading !== null}
         onClick={handleGoogle}
-        className="flex w-full items-center justify-center gap-3 rounded-lg border bg-secondry hover:bg-secondary text-forehead border-neutral-800 py-3"
+        className="flex w-full items-center justify-center gap-3 rounded-lg border bg-secondary hover:bg-secondary/80 border-neutral-800 py-3"
       >
         {loading === "google" ? (
           <Loader2 className="animate-spin" size={18} />
@@ -139,6 +151,13 @@ export default function LoginPage() {
         )}
         Continue with Google
       </Button>
+
+      {/* Extension hint */}
+      {fromExtension && (
+        <p className="text-xs text-muted-foreground text-center mt-4">
+          You’re logging in to connect the browser extension
+        </p>
+      )}
     </div>
   );
 }
