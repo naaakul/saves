@@ -1,25 +1,26 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { getUserFromRequest } from "@/lib/auth"
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "@/utils/getServerSession";
 
-export async function POST() {
-  const user = await getUserFromRequest()
+export async function GET(req: Request) {
+  const session = await getServerSession();
 
-  if (!user) {
-    return NextResponse.json(
-      { error: "Not authenticated" },
-      { status: 401 }
-    )
+  if (!session?.user) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  const token = crypto.randomUUID()
+  const token = crypto.randomUUID();
 
   await prisma.extensionToken.create({
     data: {
       token,
-      userId: user.id
-    }
-  })
+      userId: session.user.id,
+    },
+  });
 
-  return NextResponse.json({ token })
+  const EXTENSION_ID = "nmelmgcgndooeoidfkapoaebcaocpald";
+
+  return NextResponse.redirect(
+    `https://${EXTENSION_ID}.chromiumapp.org/callback?token=${token}`
+  );
 }

@@ -15,9 +15,10 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const fromExtension = searchParams.get("from") === "extension";
 
-  const callbackURL = fromExtension
-    ? "/extension/connect"
-    : "/inventory";
+  const callbackURL =
+    searchParams.get("from") === "extension"
+      ? "/api/extension/handshake"
+      : "/inventory";
 
   const [loading, setLoading] = useState<"google" | "email" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export default function LoginPage() {
 
           setError(msg);
         },
-      }
+      },
     );
   };
 
@@ -84,7 +85,7 @@ export default function LoginPage() {
 
           setError(msg);
         },
-      }
+      },
     );
   };
 
