@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getCollections, saveBookmark } from "./lib/api";
 import { Tree, CollectionNode } from "./Tree";
 import logo from "./assets/logo.svg";
@@ -161,6 +161,21 @@ export default function App() {
     setFilled((prev) => !prev);
   };
 
+  function flattenCollections(
+    collections: any,
+    depth = 0,
+  ): { id: string; name: string; depth: number }[] {
+    return collections.flatMap((c: any) => [
+      { id: c.id, name: c.name, depth },
+      ...(c.children ? flattenCollections(c.children, depth + 1) : []),
+    ]);
+  }
+
+  const flat = useMemo(() => flattenCollections(collections), [collections]);
+  const [open, setOpen] = useState(false);
+
+  const selected = flat.find((f) => f.id === selectedId);
+
   async function handleLogin() {
     chrome.identity.launchWebAuthFlow(
       {
@@ -319,7 +334,27 @@ export default function App() {
             />
           </DropdownMenuContent>
         </DropdownMenu>
-        <div className="bg-[#0A0A0A] p-2 rounded-xl flex gap-2 flex-1"></div>
+
+        
+        <div className="bg-[#0A0A0A] px-3 py-1.5 rounded-xl flex gap-1 flex-1 flex-col">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full mt-2 transition rounded-lg px-3 py-2 text-sm text-left">
+                {collections.find(node => node.id === selectedId)?.name ?? "Select folder"}
+              </button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="bg-[#121212] border-white/10">
+              <DropdownTree
+                nodes={collections}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <div className="bg-white/10 h-[0.3px]" />
+
+        </div>
       </div>
     </div>
   );

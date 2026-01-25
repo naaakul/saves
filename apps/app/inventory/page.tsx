@@ -113,7 +113,7 @@ const page = async ({
           </div>
         </div>
 
-        <div className="w-full bg-muted-foreground h-[0.025rem] mt-3"></div>
+        <div className="w-full bg-muted-foreground h-[0.025rem] mt-3"/>
 
         <div className="flex gap-4 py-4 flex-wrap">
           {/* Folders */}

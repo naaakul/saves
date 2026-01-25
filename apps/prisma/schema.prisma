@@ -22,7 +22,7 @@ model User {
   collections Collection[]
   bookmarks   Bookmark[]
 
-  extensionTokens ExtensionToken[] // ✅ ADD THIS
+  extensionTokens ExtensionToken[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -181,6 +181,9 @@ model ExtensionToken {
   id        String   @id @default(cuid())
   token     String   @unique
   userId    String
+
+  lastUsedCollectionId String?
+
   createdAt DateTime @default(now())
   revoked   Boolean  @default(false)
 

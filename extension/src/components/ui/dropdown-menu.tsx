@@ -30,6 +30,7 @@ const content: Variants = {
   },
 };
 
+
 /* --------------------------------------------------
  * Context
  * -------------------------------------------------- */
@@ -126,7 +127,7 @@ export function DropdownMenuContent({
   return (
     <motion.div
       className={cn(
-        "absolute left-0 mt-2 w-full rounded-xl bg-[#0a0a0a]",
+        "absolute left-0 mt-2 w-full rounded-xl bg-[#0a0a0a] z-50",
         "h-[476px] overflow-y-auto overflow-x-hidden",
         "p-1",
         isOpen ? "pointer-events-auto" : "pointer-events-none",
@@ -200,8 +201,8 @@ function TreeRow({
       <div
         className={cn(
           "flex items-center gap-1 rounded-lg py-1 cursor-pointer select-none",
-          "hover:bg-white/5",
-          selectedId === node.id && "bg-white/10 text-primary",
+          "hover:bg-white/10",
+          selectedId === node.id && "bg-white/5 text-primary",
         )}
         style={{ paddingLeft: 8 + depth * 14 }}
         onClick={() => onSelect(node.id)}
