@@ -9,3 +9,7 @@
   --font-geist: "Geist", sans-serif;
   --font-mono: "Geist Mono", monospace;
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

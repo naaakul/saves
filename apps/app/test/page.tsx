@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { getCollections, saveBookmark } from "./lib/api";
-import { Tree, CollectionNode } from "./Tree";
-import logo from "./assets/logo.svg";
-import { BookmarkIcon, BookmarkIconHandle } from "./components/bookmark";
+import React, { useEffect, useRef, useState } from "react";
+import { BookmarkIcon, BookmarkIconHandle } from "@/components/ui/bookmark";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownTree,
-} from "./components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TEST_TREE = [
@@ -110,47 +107,16 @@ const TEST_TREE = [
   },
 ];
 
-type ViewState = "checking" | "login" | "app";
-
-export default function App() {
+const page = () => {
   const [currentUrl, setCurrentUrl] = useState<string>("");
-  const [view, setView] = useState<ViewState>("checking");
-  const [token, setToken] = useState<string | null>(null);
-
-  const [collections, setCollections] = useState<CollectionNode[]>([]);
   const iconRef = useRef<BookmarkIconHandle>(null);
   const [filled, setFilled] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
-      if (tab?.url) {
-        setCurrentUrl(tab.url);
-      }
-    });
+    setCurrentUrl(
+      "https://aws.amazon.com/certification/certified-solutions-architect-associate/",
+    );
   }, []);
-
-  useEffect(() => {
-    chrome.storage.local.get("token").then(({ token }) => {
-      if (!token) {
-        setView("login");
-      } else {
-        setToken(token);
-        setView("app");
-        loadCollections(token);
-      }
-    });
-  }, []);
-
-  async function loadCollections(token: string) {
-    try {
-      const data = await getCollections(token);
-      setCollections(data);
-    } catch {
-      await chrome.storage.local.remove("token");
-      setView("login");
-    }
-  }
 
   const handleClick = () => {
     setFilled((prev) => !prev);
@@ -161,28 +127,6 @@ export default function App() {
     setFilled((prev) => !prev);
   };
 
-  async function handleLogin() {
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: "http://localhost:3000/auth/login?from=extension",
-        interactive: true,
-      },
-      async (redirectUrl) => {
-        if (!redirectUrl) return;
-
-        const url = new URL(redirectUrl);
-        const token = url.searchParams.get("token");
-        if (!token) return;
-
-        await chrome.storage.local.set({ token });
-
-        setToken(token);
-        setView("app");
-        loadCollections(token);
-      },
-    );
-  }
-
   function prettifyUrl(url: string) {
     try {
       const u = new URL(url);
@@ -192,58 +136,13 @@ export default function App() {
     }
   }
 
-  async function onSave() {
-    if (!selectedId || !token) return;
-
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-
-    await saveBookmark(token, {
-      url: tab.url!,
-      title: tab.title ?? "",
-      collectionId: selectedId,
-    });
-
-    window.close();
-  }
-
-  if (view === "checking") {
-    return (
-      <div className="w-[363px] h-[600px] p-2 bg-black text-white">
-        <div className="bg-[#0A0A0A] h-full w-full rounded-xl flex flex-col items-center justify-center gap-2">
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (view === "login") {
-    return (
-      <div className="w-[363px] h-[600px] p-2 bg-black">
-        <div className="bg-[#0A0A0A] h-full w-full rounded-xl flex flex-col items-center justify-center gap-2">
-          <img src={logo} alt="logo" className="w-28 h-28" />
-          <p className="font-serif text-[#fef28e] italic text-3xl text-aver">
-            Saves
-          </p>
-
-          <button
-            onClick={handleLogin}
-            className="rounded-md px-4 py-2 w-4/6 mt-7 text-sm font-medium cursor-pointer bg-[#fffdee] text-[#0a0a0a]"
-          >
-            Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   return (
-    <div className="bg-black">
+    <div className="h-screen w-full flex justify-center items-center bg-[#232323] gap-28">
       <div className="w-[363px] h-[600px] p-2 flex flex-col gap-2 bg-black rounded-2xl text-[#fffdee]">
         <div className="bg-[#0A0A0A] p-2 rounded-xl flex items-center gap-2">
-          <img src={logo} alt="logo" className="w-7 h-7" />
+          <img src={"/logo.svg"} alt="logo" className="w-7 h-7" />
           <p className="font-serif text-[#fef28e] italic text-2xl text-aver">
             Saves
           </p>
@@ -274,37 +173,38 @@ export default function App() {
               <div className="pointer-events-none absolute right-0 top-0 h-full w-2 bg-gradient-to-l from-[#0a0a0a] to-transparent" />
 
               <AnimatePresence>
-                {filled && (
-                  <motion.button
-                    key="remove-btn"
-                    initial={{
-                      opacity: 0,
-                      scale: 0.96,
-                      x: 56,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                      x: 48,
-                    }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0.96,
-                      x: 56,
-                    }}
-                    transition={{
-                      duration: 0.18,
-                      ease: "easeOut",
-                    }}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-10 pl-8 pr-12 text-xs rounded-full bg-[radial-gradient(circle,_#0a0a0a_0%,_#0a0a0a_55%,_transparent_75%)] shadow-md pointer-events-auto"
-                    onClick={handleRemove}
-                  >
-                    <div className="bg-red-800 px-4 py-0.5 rounded-md">
-                      Remove
-                    </div>
-                  </motion.button>
-                )}
-              </AnimatePresence>
+  {filled && (
+    <motion.button
+      key="remove-btn"
+      initial={{
+        opacity: 0,
+        scale: 0.96,
+        x: 56,
+      }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        x: 48,
+      }}
+      exit={{
+        opacity: 0,
+        scale: 0.96,
+        x: 5,
+      }}
+      transition={{
+        duration: 0.18,
+        ease: "easeOut",
+      }}
+      className="absolute right-1 top-1/2 -translate-y-1/2 h-10 pl-8 pr-12 text-xs rounded-full bg-[radial-gradient(circle,_#0a0a0a_0%,_#0a0a0a_55%,_transparent_75%)] shadow-md pointer-events-auto"
+      onClick={handleRemove}
+    >
+      <div className="bg-red-800 px-4 py-0.5 rounded-md">
+        Remove
+      </div>
+    </motion.button>
+  )}
+</AnimatePresence>
+
             </div>
           </div>
 
@@ -323,4 +223,6 @@ export default function App() {
       </div>
     </div>
   );
-}
+};
+
+export default page;
