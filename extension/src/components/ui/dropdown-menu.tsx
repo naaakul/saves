@@ -50,8 +50,27 @@ function useDropdownMenu() {
   return ctx;
 }
 
-function DropdownMenuProvider({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+function DropdownMenuProvider({
+  children,
+  open,
+  onOpenChange,
+}: {
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+
+  const setIsOpen: React.Dispatch<React.SetStateAction<boolean>> = (next) => {
+    const nextValue = typeof next === "function" ? next(isOpen) : next;
+    if (!isControlled) {
+      setInternalOpen(nextValue);
+    }
+    onOpenChange?.(nextValue);
+  };
 
   return (
     <Context.Provider value={{ isOpen, setIsOpen }}>
@@ -60,28 +79,33 @@ function DropdownMenuProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 /* --------------------------------------------------
  * Root
  * -------------------------------------------------- */
 
-type DropdownMenuProps = React.ComponentProps<"nav">;
+type DropdownMenuProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} & React.ComponentProps<"nav">;
+
 
 export function DropdownMenu({
   className,
   children,
+  open,
+  onOpenChange,
   ...props
 }: DropdownMenuProps) {
   return (
-    <DropdownMenuProvider>
-      <nav
-        className={cn("relative", className)}
-        {...props}
-      >
+    <DropdownMenuProvider open={open} onOpenChange={onOpenChange}>
+      <nav className={cn("relative", className)} {...props}>
         {children}
       </nav>
     </DropdownMenuProvider>
   );
 }
+
 
 /* --------------------------------------------------
  * Trigger
