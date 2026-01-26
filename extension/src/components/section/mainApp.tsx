@@ -6,9 +6,8 @@ import {
   DropdownTree,
 } from "../ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookmarkIcon } from "../ui/bookmark";
-import { useEffect, useRef, useState } from "react";
-import { BookmarkIconHandle } from "../ui/bookmark";
+import { BookmarkIcon, BookmarkIconHandle } from "../ui/bookmark";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { prettifyUrl } from "../../utils/utils";
 import { getExtensionToken } from "../../utils/bootstrap";
 
@@ -21,23 +20,22 @@ type CollectionNode = {
 type Bookmark = {
   id: string;
   url: string;
+  collectionId: string;
 };
 
 export interface MainAppProps {
   collections: CollectionNode[];
-
   bookmarks: Bookmark[];
   setBookmarks: React.Dispatch<React.SetStateAction<Bookmark[]>>;
-
   selectedId: string | null;
   setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
-
-  filled: boolean;
-  setFilled: React.Dispatch<React.SetStateAction<boolean>>;
-
+  bookmarked: boolean;
+  setBookmarked: React.Dispatch<React.SetStateAction<boolean>>;
   currentUrl: string;
   setCurrentUrl: React.Dispatch<React.SetStateAction<string>>;
 }
+
+const API = "http://localhost:3000/api/extension";
 
 const MainApp = ({
   collections,
@@ -45,8 +43,8 @@ const MainApp = ({
   setBookmarks,
   selectedId,
   setSelectedId,
-  filled,
-  setFilled,
+  bookmarked,
+  setBookmarked,
   currentUrl,
   setCurrentUrl,
 }: MainAppProps) => {
@@ -57,72 +55,129 @@ const MainApp = ({
     chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
       if (tab?.url) setCurrentUrl(tab.url);
     });
-  }, []);
+  }, [setCurrentUrl]);
 
-  async function handleSave() {
-    if (filled || !selectedId) {
+  const authedFetch = useCallback(
+    async (url: string, options?: RequestInit) => {
+      const token = await getExtensionToken();
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...(options?.headers || {}),
+        },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Request failed");
+      }
+
+      return res.json().catch(() => ({}));
+    },
+    [],
+  );
+
+  const handleSave = async () => {
+    if (!selectedId) {
       setDropdownOpen(true);
       return;
     }
 
-    iconRef.current?.startAnimation();
-    setFilled(true);
-    setDropdownOpen(false);
+    if (bookmarked) return;
 
-    const token = await getExtensionToken();
+    try {
+      iconRef.current?.startAnimation();
+      setBookmarked(true);
 
-    fetch("http://localhost:3000/api/extension/bookmarks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        url: currentUrl,
-        title: document.title,
-        collectionId: selectedId,
-      }),
-    });
-  }
+      const data = await authedFetch(`${API}/bookmarks`, {
+        method: "POST",
+        body: JSON.stringify({
+          url: currentUrl,
+          title: document.title,
+          collectionId: selectedId,
+        }),
+      });
 
-  async function handleRemove() {
+      setBookmarks((prev) => [...prev, data.bookmark]);
+    } catch (err) {
+      console.error("Save failed:", err);
+      setBookmarked(false);
+    }
+  };
+
+  const handleRemove = async () => {
     const bookmark = bookmarks.find((b) => b.url === currentUrl);
     if (!bookmark) return;
 
-    setFilled(false);
+    try {
+      const res = await authedFetch(
+        `${API}/bookmarks?url=${encodeURIComponent(currentUrl)}`,
+      );
 
-    const token = await getExtensionToken();
+      if (!res.exists) return;
 
-    fetch(`http://localhost:3000/api/extension/bookmarks/${bookmark.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  }
+      await authedFetch(`${API}/bookmarks/${res.bookmark.id}`, {
+        method: "DELETE",
+      });
 
-  async function handleFolderSelect(id: string) {
-    setSelectedId(id);
-    setDropdownOpen(false);
+      setBookmarked(false);
 
-    const token = await getExtensionToken();
+      if (selectedId) {
+        const data = await authedFetch(`${API}/view?folder=${selectedId}`);
+        setBookmarks(data.bookmarks || []);
+      }
+    } catch (err) {
+      console.error("Remove failed:", err);
+    }
+  };
 
-    const res = await fetch(
-      `http://localhost:3000/api/extension/view?folder=${id}`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
+  const handleFolderSelect = async (id: string) => {
+    try {
+      setSelectedId(id);
+      setDropdownOpen(false);
 
-    const data = await res.json();
-    setBookmarks(data.bookmarks);
-    setFilled(data.bookmarks.some((b: Bookmark) => b.url === currentUrl));
-  }
+      const existing = bookmarks.find((b) => b.url === currentUrl);
+
+      if (!existing) {
+        const data = await authedFetch(`${API}/bookmarks`, {
+          method: "POST",
+          body: JSON.stringify({
+            url: currentUrl,
+            title: document.title,
+            collectionId: id,
+          }),
+        });
+
+        setBookmarks((prev) => [...prev, data.bookmark]);
+        setBookmarked(true);
+        return;
+      }
+
+      await authedFetch(`${API}/bookmarks/${existing.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ collectionId: id }),
+      });
+
+      setBookmarks((prev) =>
+        prev.map((b) =>
+          b.id === existing.id ? { ...b, collectionId: id } : b,
+        ),
+      );
+    } catch (err) {
+      console.error("Folder change failed:", err);
+    }
+  };
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") handleSave();
-    }
+    };
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [filled, selectedId, currentUrl]);
+  }, [handleSave]);
 
   return (
     <div className="w-[363px] h-[600px] bg-black p-2 text-[#fffdee] flex flex-col gap-2">
@@ -138,14 +193,14 @@ const MainApp = ({
               onClick={handleSave}
               className="w-7 h-7 flex items-center justify-center"
             >
-              <BookmarkIcon ref={iconRef} filled={filled} />
+              <BookmarkIcon ref={iconRef} filled={bookmarked} />
             </button>
           </DropdownMenuTrigger>
 
           <div className="relative flex-1 min-w-0 h-7 rounded-lg overflow-hidden">
             <div
               className={`px-2 h-full flex items-center overflow-x-auto whitespace-nowrap overflow-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-300 ${
-                filled ? "pr-16" : "pr-2"
+                bookmarked ? "pr-16" : "pr-2"
               }`}
             >
               <p className="shrink-0">{prettifyUrl(currentUrl)}</p>
@@ -156,7 +211,7 @@ const MainApp = ({
             <div className="pointer-events-none absolute right-0 top-0 h-full w-2 bg-gradient-to-l from-[#0a0a0a] to-transparent" />
 
             <AnimatePresence>
-              {filled && (
+              {bookmarked && (
                 <motion.button
                   key="remove-btn"
                   initial={{

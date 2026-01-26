@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-
 function unauthorized(message = "Unauthorized") {
   return NextResponse.json({ error: message }, { status: 401 });
 }
@@ -19,55 +18,140 @@ function isValidUrl(url: string) {
   }
 }
 
-
-export async function POST(req: NextRequest) {
+function normalizeUrl(raw: string) {
   try {
+    const u = new URL(raw);
 
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return unauthorized("Missing extension token");
-    }
-
-    const token = authHeader.replace("Bearer ", "").trim();
-
-    const extensionToken = await prisma.extensionToken.findUnique({
-      where: { token },
+    u.searchParams.forEach((_, key) => {
+      if (key.startsWith("utm_")) u.searchParams.delete(key);
     });
 
-    if (!extensionToken || extensionToken.revoked) {
-      return unauthorized("Invalid or revoked extension token");
+    u.hash = "";
+    u.protocol = "https:";
+
+    if (u.pathname.endsWith("/") && u.pathname !== "/") {
+      u.pathname = u.pathname.slice(0, -1);
     }
+
+    return u.toString();
+  } catch {
+    return raw;
+  }
+}
+
+async function getUserFromToken(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authHeader.replace("Bearer ", "").trim();
+
+  const extensionToken = await prisma.extensionToken.findUnique({
+    where: { token },
+  });
+
+  if (!extensionToken || extensionToken.revoked) {
+    return null;
+  }
+
+  return extensionToken;
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const extensionToken = await getUserFromToken(req);
+    if (!extensionToken)
+      return unauthorized("Invalid or missing extension token");
 
     const userId = extensionToken.userId;
 
+    const { searchParams } = new URL(req.url);
+    const url = searchParams.get("url");
+
+    if (!url || !isValidUrl(url)) {
+      return badRequest("Invalid URL");
+    }
+
+    const normalizedUrl = normalizeUrl(url);
+
+    const bookmark = await prisma.bookmark.findFirst({
+      where: {
+        userId,
+        url: normalizedUrl,
+        isArchived: false,
+      },
+      select: {
+        id: true,
+        collectionId: true,
+      },
+    });
+
+    if (!bookmark) {
+      return NextResponse.json({ exists: false });
+    }
+
+    return NextResponse.json({
+      exists: true,
+      bookmark,
+    });
+  } catch (err) {
+    console.error("[EXTENSION_BOOKMARK_CHECK_ERROR]", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const extensionToken = await getUserFromToken(req);
+    if (!extensionToken)
+      return unauthorized("Invalid or missing extension token");
+
+    const userId = extensionToken.userId;
 
     const { url, title, collectionId } = await req.json();
+
+    console.log("this is console log ⭐⭐⭐⭐⭐⭐ ", url, title, collectionId);
 
     if (!url || typeof url !== "string" || !isValidUrl(url)) {
       return badRequest("Invalid URL");
     }
 
+    const normalizedUrl = normalizeUrl(url);
+    const parsed = new URL(normalizedUrl);
 
     if (collectionId) {
       const folder = await prisma.collection.findFirst({
-        where: {
-          id: collectionId,
-          userId,
-        },
+        where: { id: collectionId, userId },
         select: { id: true },
       });
 
-      if (!folder) {
-        return badRequest("Invalid folder");
-      }
+      if (!folder) return badRequest("Invalid folder");
     }
 
+    const existing = await prisma.bookmark.findFirst({
+      where: {
+        userId,
+        url: normalizedUrl,
+        isArchived: false,
+      },
+      select: { id: true, collectionId: true },
+    });
 
-    const parsed = new URL(url);
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        bookmark: existing,
+        duplicate: true,
+      });
+    }
 
     const bookmark = await prisma.bookmark.create({
       data: {
-        url,
+        url: normalizedUrl,
         title: title?.trim() || null,
         domain: parsed.hostname,
         userId,
@@ -79,9 +163,9 @@ export async function POST(req: NextRequest) {
         title: true,
         domain: true,
         faviconUrl: true,
+        collectionId: true,
       },
     });
-
 
     if (collectionId && collectionId !== extensionToken.lastUsedCollectionId) {
       await prisma.extensionToken.update({
@@ -89,7 +173,6 @@ export async function POST(req: NextRequest) {
         data: { lastUsedCollectionId: collectionId },
       });
     }
-
 
     return NextResponse.json({
       success: true,

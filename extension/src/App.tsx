@@ -17,36 +17,46 @@ type CollectionNode = {
 type Bookmark = {
   id: string;
   url: string;
+  collectionId: string;
 };
 
 export default function App() {
   const [collections, setCollections] = useState<CollectionNode[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filled, setFilled] = useState<boolean>(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const [view, setView] = useState<ViewState>("checking");
   const [currentUrl, setCurrentUrl] = useState("");
 
   useEffect(() => {
-    chrome.storage.local.get("token").then(({ token }) => {
-      if (!token) {
-        setView("login");
-      } else {
-        setView("app");
-        bootstrap({
-          setCollections,
-          setSelectedId,
-          setBookmarks,
-          setFilled,
-          currentUrl,
-        });
-      }
-    });
-  }, []);
+  const init = async () => {
+    const [{ url }] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const current = url || "";
+    setCurrentUrl(current);
 
-  if (view === "checking") {
-    return <Checking />;
-  }
+    const { token } = await chrome.storage.local.get("token");
+
+    if (!token) {
+      setView("login");
+      return;
+    }
+
+    setView("app");
+
+    await bootstrap({
+      setCollections,
+      setSelectedId,
+      setBookmarks,
+      setBookmarked,
+      currentUrl: current,
+    });
+  };
+
+  init();
+}, []);
+
+
+  if (view === "checking") return <Checking />;
 
   if (view === "login") {
     return (
@@ -54,7 +64,7 @@ export default function App() {
         setCollections={setCollections}
         setSelectedId={setSelectedId}
         setBookmarks={setBookmarks}
-        setFilled={setFilled}
+        setBookmarked={setBookmarked}
         currentUrl={currentUrl}
         setView={setView}
       />
@@ -68,8 +78,8 @@ export default function App() {
       setBookmarks={setBookmarks}
       selectedId={selectedId}
       setSelectedId={setSelectedId}
-      filled={filled}
-      setFilled={setFilled}
+      bookmarked={bookmarked}
+      setBookmarked={setBookmarked}
       currentUrl={currentUrl}
       setCurrentUrl={setCurrentUrl}
     />

@@ -143,7 +143,7 @@ export default function LoginPage() {
       <Button
         disabled={loading !== null}
         onClick={handleGoogle}
-        className="flex w-full items-center justify-center gap-3 rounded-lg border bg-secondary hover:bg-secondary/80 border-neutral-800 py-3"
+        className="flex w-full items-center justify-center gap-3 rounded-lg border bg-secondary hover:bg-secondary/80 border-neutral-800 py-3 text-primary"
       >
         {loading === "google" ? (
           <Loader2 className="animate-spin" size={18} />
