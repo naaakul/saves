@@ -114,8 +114,6 @@ export async function POST(req: NextRequest) {
 
     const { url, title, collectionId } = await req.json();
 
-    console.log("this is console log ⭐⭐⭐⭐⭐⭐ ", url, title, collectionId);
-
     if (!url || typeof url !== "string" || !isValidUrl(url)) {
       return badRequest("Invalid URL");
     }
