@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {},
+  // turbopack: {},
   reactStrictMode: true,
   images: {
     remotePatterns: [
