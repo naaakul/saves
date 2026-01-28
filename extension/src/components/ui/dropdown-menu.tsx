@@ -42,7 +42,7 @@ type MenuContextType = {
 
 const Context = createContext<MenuContextType | null>(null);
 
-function useDropdownMenu() {
+export function useDropdownMenu() {
   const ctx = useContext(Context);
   if (!ctx) {
     throw new Error("DropdownMenu components must be used inside DropdownMenu");
