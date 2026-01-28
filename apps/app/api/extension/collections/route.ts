@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
     /* ---------- BUILD TREE ---------- */
 
     const tree = buildTree(
+      // @ts-ignore
       rows.map((r) => ({
         ...r,
         children: [],

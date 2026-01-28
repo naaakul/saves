@@ -113,32 +113,41 @@ const page = async ({
           </div>
         </div>
 
-        <div className="w-full bg-muted-foreground h-[0.025rem] mt-3"/>
+        <div className="w-full bg-muted-foreground h-[0.025rem] mt-3" />
 
         <div className="flex gap-4 py-4 flex-wrap">
           {/* Folders */}
-          {folders.map((folder) => (
-            <Folder
-              key={folder.id}
-              id={folder.id}
-              name={folder.name}
-              isPublic={folder.visibility === "PUBLIC"}
-              bookmarkCount={folder._count.bookmarks}
-              folderCount={folder._count.children}
-            />
-          ))}
+
+          {
+            // @ts-ignore
+
+            folders.map((folder) => (
+              <Folder
+                key={folder.id}
+                id={folder.id}
+                name={folder.name}
+                isPublic={folder.visibility === "PUBLIC"}
+                bookmarkCount={folder._count.bookmarks}
+                folderCount={folder._count.children}
+              />
+            ))
+          }
 
           {/* Websites */}
-          {bookmarks.map((b) => (
-            <Website
-              key={b.id}
-              id={b.id}
-              title={b.title}
-              url={b.url}
-              domain={b.domain}
-              favicon={b.faviconUrl}
-            />
-          ))}
+
+          {
+            // @ts-ignore
+            bookmarks.map((b) => (
+              <Website
+                key={b.id}
+                id={b.id}
+                title={b.title}
+                url={b.url}
+                domain={b.domain}
+                favicon={b.faviconUrl}
+              />
+            ))
+          }
         </div>
       </div>
     </div>

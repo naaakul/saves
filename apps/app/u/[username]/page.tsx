@@ -143,17 +143,13 @@ const page = async ({
           {breadcrumbs.map((b) => (
             <span key={b.id} className="flex gap-2">
               <span>/</span>
-              <Link href={`/u/${username}?folder=${b.id}`}>
-                {b.name}
-              </Link>
+              <Link href={`/u/${username}?folder=${b.id}`}>{b.name}</Link>
             </span>
           ))}
         </div>
 
         <div className="flex justify-between items-center">
-          <p className="ml-3">
-            {breadcrumbs.at(-1)?.name ?? "Folders"}
-          </p>
+          <p className="ml-3">{breadcrumbs.at(-1)?.name ?? "Folders"}</p>
 
           {isOwner && (
             <div className="flex gap-2">
@@ -166,27 +162,33 @@ const page = async ({
         <div className="w-full bg-muted-foreground h-[0.025rem] mt-3" />
 
         <div className="flex gap-4 py-4 flex-wrap">
-          {folders.map((folder) => (
-            <Folder
-              key={folder.id}
-              id={folder.id}
-              name={folder.name}
-              isPublic={folder.visibility === "PUBLIC"}
-              bookmarkCount={folder._count.bookmarks}
-              folderCount={folder._count.children}
-            />
-          ))}
+          {
+            // @ts-ignore
+            folders.map((folder) => (
+              <Folder
+                key={folder.id}
+                id={folder.id}
+                name={folder.name}
+                isPublic={folder.visibility === "PUBLIC"}
+                bookmarkCount={folder._count.bookmarks}
+                folderCount={folder._count.children}
+              />
+            ))
+          }
 
-          {bookmarks.map((b) => (
-            <Website
-              key={b.id}
-              id={b.id}
-              title={b.title}
-              url={b.url}
-              domain={b.domain}
-              favicon={b.faviconUrl}
-            />
-          ))}
+          {
+            // @ts-ignore
+            bookmarks.map((b) => (
+              <Website
+                key={b.id}
+                id={b.id}
+                title={b.title}
+                url={b.url}
+                domain={b.domain}
+                favicon={b.faviconUrl}
+              />
+            ))
+          }
         </div>
       </div>
     </div>

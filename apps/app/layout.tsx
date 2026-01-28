@@ -27,8 +27,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Saves",
-  description: "bookmark app",
+  title: "Saves — Never Lose a Link Again",
+  description:
+    "Saves is a visual bookmark manager that stores and organizes your links with previews, folders, and privacy controls. Built for the modern web.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Saves",
+  },
+  icons: {
+    apple: "/icons/icon-192.png",
+  },
 };
 
 export default function RootLayout({
