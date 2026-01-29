@@ -1,10 +1,13 @@
+import { getServerSession } from "@/utils/getServerSession";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
-const page = () => {
+const page = async () => {
+  const session = await getServerSession();
   return (
     <div className="bg-black h-screen p-3">
-      <div className="bg-secondary h-full w-full rounded-2xl">
+      <div className="bg-secondary h-full w-full rounded-2xl flex">
         <nav className="p-6">
           <div className="flex items-center gap-3">
             <Image
@@ -19,6 +22,14 @@ const page = () => {
             </p>
           </div>
         </nav>
+
+        <div className="flex-1 flex justify-center items-center">
+          {session?.user ? (
+            <Link href={"/auth/login"} className="bg-amber-100 text-black py-1 px-3 rounded">Login</Link>
+          ) : (
+            <Link href={"/inventory"} className="bg-amber-100 text-black py-1 px-3 rounded">Login</Link>
+          )}
+        </div>
       </div>
     </div>
   );
