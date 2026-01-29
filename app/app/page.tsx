@@ -25,9 +25,19 @@ const page = async () => {
 
         <div className="flex-1 flex justify-center items-center">
           {session?.user ? (
-            <Link href={"/auth/login"} className="bg-amber-100 text-black py-1 px-3 rounded">Login</Link>
+            <Link
+              href={"/inventory"}
+              className="bg-amber-100 text-black py-1 px-3 rounded"
+            >
+              Inventory
+            </Link>
           ) : (
-            <Link href={"/inventory"} className="bg-amber-100 text-black py-1 px-3 rounded">Login</Link>
+            <Link
+              href={"/auth/login"}
+              className="bg-amber-100 text-black py-1 px-3 rounded"
+            >
+              Login
+            </Link>
           )}
         </div>
       </div>
