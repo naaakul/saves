@@ -75,12 +75,12 @@ const page = async ({
       <nav className="p-3 bg-secondary w-full rounded-2xl flex justify-between items-center">
         <div className="flex items-center gap-3">
           <Image
-            className="size-8"
+            className="size-8 rounded-lg"
             alt=""
             src={"/logo.svg"}
             height={200}
             width={200}
-          />
+          ></Image>
           <p className="text-xl">Inventory</p>
         </div>
         <Image

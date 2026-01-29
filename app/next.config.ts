@@ -9,12 +9,18 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {},
   reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: [
+      "@prisma/client",
+      "prisma",
+      "better-auth",
+    ],
+  },
   images: {
     remotePatterns: [
       {
-        protocol: "https" as const,
+        protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
     ],

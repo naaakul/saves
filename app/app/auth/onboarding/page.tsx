@@ -120,6 +120,7 @@ export default function OnboardingPage() {
           <div className="space-y-2">
             <Label>Name</Label>
             <Input
+              className="border-b border-primary rounded-none"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
@@ -144,9 +145,10 @@ export default function OnboardingPage() {
           <div className="space-y-2">
             <Label>Username</Label>
             <Input
+              className="border-b border-primary rounded-none"
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase())}
-              placeholder="nakuldev"
+              placeholder="megan"
             />
           </div>
 
@@ -154,7 +156,7 @@ export default function OnboardingPage() {
             <Button
               variant="outline"
               onClick={() => setStep(1)}
-              className="w-full"
+              className="w-1/2"
             >
               Back
             </Button>
@@ -162,7 +164,7 @@ export default function OnboardingPage() {
             <Button
               onClick={handleUsernameNext}
               disabled={loading}
-              className="w-full"
+              className="flex-1"
             >
               Next
             </Button>
@@ -203,7 +205,7 @@ export default function OnboardingPage() {
             <Button
               variant="outline"
               onClick={() => setStep(2)}
-              className="w-full"
+              className="w-1/2"
             >
               Back
             </Button>
@@ -211,11 +213,13 @@ export default function OnboardingPage() {
             <Button
               onClick={handleVisibilityNext}
               disabled={loading}
-              className="w-full"
+              className="flex-1"
             >
               Next
             </Button>
           </div>
+
+          
         </>
       )}
 
@@ -232,7 +236,7 @@ export default function OnboardingPage() {
             <Button
               variant="outline"
               onClick={() => setStep(3)}
-              className="w-full"
+              className="w-1/2"
             >
               Back
             </Button>
@@ -241,7 +245,7 @@ export default function OnboardingPage() {
               onClick={() => {
                 window.location.href = "/inventory";
               }}
-              className="w-full"
+              className="flex-1"
             >
               Finish
             </Button>

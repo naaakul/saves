@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getFolderBreadcrumbs } from "@/lib/breadcrumbs";
 import { AddBookmarkModal } from "@/components/inventory/add-bookmark-modal";
 import { CreateFolderModal } from "@/components/inventory/create-folder-modal";
+import { ArrowRight } from "lucide-react";
 
 const page = async ({
   params,
@@ -130,9 +131,10 @@ const page = async ({
         {isOwner && (
           <Link
             href="/inventory"
-            className="text-sm opacity-80 hover:opacity-100"
+            className="text-sm opacity-80 hover:opacity-100 flex gap-1 items-center"
           >
-            Inventory
+            <p className="text-md">Inventory</p>
+            <ArrowRight size={15}/>
           </Link>
         )}
       </nav>
@@ -149,14 +151,14 @@ const page = async ({
         </div>
 
         <div className="flex justify-between items-center">
-          <p className="ml-3">{breadcrumbs.at(-1)?.name ?? "Folders"}</p>
+          <p className="ml-3">{breadcrumbs.at(-1)?.name ?? "Inventory"}</p>
 
-          {isOwner && (
+          {/* {isOwner && (
             <div className="flex gap-2">
               <AddBookmarkModal collectionId={currentFolderId} />
               <CreateFolderModal parentId={currentFolderId} />
             </div>
-          )}
+          )} */}
         </div>
 
         <div className="w-full bg-muted-foreground h-[0.025rem] mt-3" />
