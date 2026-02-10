@@ -6,9 +6,8 @@ import Website from "@/components/inventory/website";
 import Image from "next/image";
 import Link from "next/link";
 import { getFolderBreadcrumbs } from "@/lib/breadcrumbs";
-import { AddBookmarkModal } from "@/components/inventory/add-bookmark-modal";
-import { CreateFolderModal } from "@/components/inventory/create-folder-modal";
 import { ArrowRight } from "lucide-react";
+import SignOutButton from "@/components/ui/signOutButton";
 
 const page = async ({
   params,
@@ -18,7 +17,6 @@ const page = async ({
   searchParams: Promise<{ folder?: string }>;
 }) => {
   const session = await getServerSession();
-
   const { username } = await params;
   const { folder } = await searchParams;
 
@@ -126,6 +124,7 @@ const page = async ({
             height={32}
           />
           <p className="text-xl">@{profileUser.username}</p>
+          {isOwner && <SignOutButton />}
         </div>
 
         {isOwner && (
@@ -134,7 +133,7 @@ const page = async ({
             className="text-sm opacity-80 hover:opacity-100 flex gap-1 items-center"
           >
             <p className="text-md">Inventory</p>
-            <ArrowRight size={15}/>
+            <ArrowRight size={15} />
           </Link>
         )}
       </nav>
