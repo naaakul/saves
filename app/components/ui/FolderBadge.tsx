@@ -3,7 +3,7 @@ import { ImagesBadge } from "@/components/ui/images-badge";
  
 export default function FolderBadge() {
   return (
-    <div className="flex w-full items-center justify-center">
+    <div className="flex w-full items-center justify-center mt-20">
       <ImagesBadge
         // images={[
         //   "https://assets.aceternity.com/pro/agenforce-2.webp",
