@@ -10,7 +10,7 @@ import Link from "next/link";
 //   session: SessionData;
 // }) {
 export default async function Navbar() {
-  const session = getServerSession();
+  const session = await getServerSession();
   return (
     <nav className="w-full flex justify-center top-10 fixed z-50">
       <div className="flex items-center gap-9 bg-black rounded-xl border border-white/20 p-2 shadow-[inset_0px_0px_30px_rgba(255,255,255,0.2),0px_15px_45px_rgba(0,0,0,0.3)]">
@@ -29,7 +29,7 @@ export default async function Navbar() {
           Privacy Policy
         </Link>
 
-        {!session ? (
+        {!session?.user ? (
           <div className="flex gap-2">
             <Link
               href="/auth/login"
