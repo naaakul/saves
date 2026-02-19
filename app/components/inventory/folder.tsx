@@ -30,16 +30,18 @@ const Folder = ({
         />
 
         <div
-          className="absolute p-1 px-3 -bottom-[4.7rem] scale-90 bg-card h-[240px] w-[240px]
-          [mask-image:url('/folder.svg')]
-          [mask-repeat:no-repeat]
-          [mask-position:top]
-          [mask-size:contain]
-          [-webkit-mask-image:url('/folder.svg')]
-          [-webkit-mask-repeat:no-repeat]
-          [-webkit-mask-position:top]
-          [-webkit-mask-size:contain]"
-        >
+  className="absolute p-1 px-3 -bottom-[4.7rem] scale-90 bg-card h-[240px] w-[240px]
+  blur-xl
+  [mask-image:url('/folder.svg')]
+  [mask-repeat:no-repeat]
+  [mask-position:top]
+  [mask-size:contain]
+  [-webkit-mask-image:url('/folder.svg')]
+  [-webkit-mask-repeat:no-repeat]
+  [-webkit-mask-position:top]
+  [-webkit-mask-size:contain]"
+>
+
           <p className="mt-7 font-medium truncate">{name}</p>
 
           <div className="flex text-xs w-full justify-between mt-9">

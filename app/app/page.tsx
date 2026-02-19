@@ -1,3 +1,4 @@
+import FolderBadge from "@/components/ui/FolderBadge";
 import { getServerSession } from "@/utils/getServerSession";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,6 +41,7 @@ const page = async () => {
               Login
             </Link>
           )}
+
         </div>
       </div>
     </div>
